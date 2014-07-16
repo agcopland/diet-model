@@ -28,9 +28,9 @@ class Mathematica(linkArgs: String) {
       link.waitForAnswer()
       link.getExpr
     })
-    result.map(result => logger.debug(s"Received from Kernel: $result"))
+    result.map(result => logger.trace(s"Received from Kernel (Raw): $result"))
     val parsedResult = result.map(Expression(_))
-    parsedResult.map(result => logger.debug(s"Parsed to: $result"))
+    parsedResult.map(result => logger.debug(s"Received from Kernel (Parsed): $result"))
     parsedResult
   }
 

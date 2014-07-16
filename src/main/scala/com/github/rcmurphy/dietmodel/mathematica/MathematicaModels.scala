@@ -9,6 +9,10 @@ sealed trait Expression {
     FunctionExpression("Times", Seq(this, other))
   }
 
+  def +(other: Expression): Expression = {
+    FunctionExpression("Plus", Seq(this, other))
+  }
+
   def toMathematica: String
 }
 sealed trait ConstantExpression[T] extends Expression {
@@ -28,7 +32,9 @@ object Expression {
         case child: FunctionExpression if child.name == "Rule" && child.values.length == 2 => true
         case _ => false
       }) {
-        RuleListExpression(children.map { case child: FunctionExpression => (child.values(0).toString, child.values(1)) }.toMap)
+        RuleListExpression(children.map {
+          case FunctionExpression("Rule", Seq(name, value)) => (name.toString, value)
+        }.toMap)
       } else {
         ArrayExpression(children)
       }
@@ -56,7 +62,7 @@ case class ArrayExpression(values: Seq[Expression])
 
   override def apply(idx: Int): Expression = values.apply(idx)
 
-  override def toString: String = values.mkString("{ ", " , "," }")
+  override def toString(): String = values.mkString("{ ", " , "," }")
 
   override def toMathematica: String = values.map(_.toMathematica).mkString("{ ", " , "," }")
 }
@@ -70,50 +76,68 @@ case class RuleListExpression(rules: Map[String, Expression])
 
   override def -(key: String): Map[String, Expression] = rules - key
 
-  override def toString: String = rules.map { case (name, value) => s"$name -> $value" }.mkString("ℜ{ ", " , "," }")
+  override def toString(): String = rules.map { case (name, value) => s"$name ← $value" }.mkString("ℜ{ ", " , "," }")
 
   override def toMathematica: String =
     rules.map { case (name, value) => s"Rule[$name, ${value.toMathematica}]" }.mkString("{ ", " , "," }")
 }
+
 case class AtomExpression(name: String) extends Expression {
   override def toString: String = name
 
   override def toMathematica: String = name
 }
+
 case class IntegerExpression(value: Int) extends ConstantExpression[Int]
+
 case class BigDecimalExpression(value: BigDecimal) extends ConstantExpression[BigDecimal] {
   override def toString: String = BigDecimalExpression.formatter.format(value)
 }
+
 object BigDecimalExpression {
   protected val formatter = new java.text.DecimalFormat("0.00######")
 }
+
 case class FunctionExpression(name: String, values: Seq[Expression]) extends Expression {
+  import FunctionExpression._
+
   override def toString: String = (name, values) match {
-    case (_, Seq(a, b)) if FunctionExpression.operators.contains(name) =>
-      val as = a match {
-        case v: FunctionExpression if FunctionExpression.operators.contains(v.name) => s"( $v )"
-        case v => v.toString
-      }
-      val bs = b match {
-        case v: FunctionExpression if FunctionExpression.operators.contains(v.name) => s"( $v )"
-        case v => v.toString
-      }
-      as + " " + FunctionExpression.operators(name) + " " + bs
+    case (_, Seq(a, b)) if binaryOperators.contains(name) =>
+      val as = autoWrap(a)
+      val bs = autoWrap(b)
+      as + " " + binaryOperators(name) + " " + bs
+    case (_, values) if naryOperators.contains(name) =>
+      val valueStrings = values.map(autoWrap)
+      valueStrings.mkString(" " + naryOperators(name) + " ")
     case _ => name + values.mkString("( ", " , ", " )")
+  }
+
+  private def autoWrap(exp: Expression): String = {
+    exp match {
+      case v: FunctionExpression if operators.contains(v.name) && operators.contains(this.name) => s"( $v )"
+      case v => v.toString
+    }
   }
 
   override def toMathematica: String = s"$name" + values.map(_.toMathematica).mkString("[ ", " , "," ]")
 }
 object FunctionExpression {
-  val operators = Map(
-    "Rule" -> " <- ",
-    /* Arithmetic */
-    "Plus" -> " + ",
-    "Times" -> " * ",
+  val binaryOperators = Map(
     /* Equality */
-    "LessEqual" -> " ≤ ",
-    "GreaterEqual" -> " ≥ ",
-    /* Boolean */
-    "And" -> " && "
+    "LessEqual" -> "≤",
+    "GreaterEqual" -> "≥",
+    "Rule" -> "←",
+    /* Misc */
+    "Element" -> "∈"
   )
+  val naryOperators = Map(
+    /* Arithmetic */
+    "Plus" -> "+",
+    "Times" -> "⨉",
+    /* Boolean */
+    "And" -> "&&",
+    /* Misc */
+    "Alternatives" -> "|"
+  )
+  val operators = binaryOperators ++ naryOperators
 }
