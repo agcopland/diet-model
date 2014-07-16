@@ -11,7 +11,7 @@ case class Food(id: String, cost: Double, nutrients: Map[String, Double], unit: 
   def this(id: String, cost: Double, dbId: String) = this(id, cost, )
 }*/
 
-case class Nutrient(id: String, unit: String, minimum: Option[Double], maximum: Option[Double])
+case class Nutrient(id: String, unit: String, minimum: Option[Double], maximum: Option[Double], enforce: Boolean = true)
 {
   if(maximum.isDefined && minimum.isDefined)
     require(maximum.get >= minimum.get)

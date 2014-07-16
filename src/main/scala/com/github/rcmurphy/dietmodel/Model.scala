@@ -51,13 +51,13 @@ object Model {
     }
     mathematica("cost") <~ foods.map(food => s"${food.cost} * ${food.id}std").mkString(" + ")
     mathematica("adjustedCost") <~ "cost - 0.0002389 * protein"
-    nutrients.foreach { case Nutrient(nutrient, _,  _, _) =>
+    nutrients.foreach { case Nutrient(nutrient, _,  _, _, _) =>
       mathematica(nutrient) <~ foods.map(food => s"${food.nutrients(nutrient)} * ${food.id}std").mkString(" + ")
     }
     mathematica("foodConstraints") <~ foods.map(food => s"${food.id}div >= 0").mkString(" && ")
     mathematica("quantizationConstraints") <~ "Element[ " + foods.map(food => s"${food.id}div").mkString(" | ") + " , Integers]"
-    mathematica("nutrientConstraints") <~ nutrients.flatMap {
-      case Nutrient(nutrient, _, min, max) =>
+    mathematica("nutrientConstraints") <~ nutrients.filter(_.enforce).flatMap {
+      case Nutrient(nutrient, _, min, max, _) =>
         min.map( min => s"$nutrient >= ${min}") ++ max.map( max => s"$nutrient <= ${max}")
     }.mkString(" && ")
     val result: ArrayExpression =
@@ -89,14 +89,14 @@ object Model {
     logger.info(s"Adjusted Cost: ${result(0)}")
     logger.info(s"Actual Cost: $cost")
     logger.info(s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}")
-    optimalDiet.foreach { case (Food(foodId, _, _, unit), amount) =>
+    optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit), amount) =>
       val perYearAmount = (amount * unit.unitToHundredGrams * Pound.hundredGramsToUnit * 365.25).toFloat
       logger.info(s"${foodId.padTo(20, ' ')} ${amount.toFloat.toString.padTo(11, ' ')} ${unit.name.padTo(4, ' ')} " +
       s"${perYearAmount.toString.padTo(11, ' ')} ${Pound.name.padTo(4, ' ')}")
     }
 
     logger.info("Nutrients:")
-    nutrientsWithValues.foreach { case (nutrient, value) =>
+    nutrientsWithValues.sortBy(_._1.id).foreach { case (nutrient, value) =>
       val (maxClose, minClose) = (
         nutrient.maximum.map( max => (max - value) < max * 0.05 ),
         nutrient.minimum.map( min => (value - min) < min * 0.05 ))
