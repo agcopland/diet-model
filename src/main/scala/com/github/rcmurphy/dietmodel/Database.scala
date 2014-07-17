@@ -59,7 +59,7 @@ object Database {
       cost = cost,
       nutrients = food.nutrients.flatMap {
         case (dbNutrient, amount) if saneNutrientName.isDefinedAt(dbNutrient.shortName) =>
-          Some((saneNutrientName(dbNutrient.shortName), amount / cookingCoef))
+          Some((saneNutrientName(dbNutrient.shortName), amount * cookingCoef))
         case _ => None
       }.toMap,
       unit = unit
@@ -95,11 +95,11 @@ object Database {
 
 
   protected def readFoodNutrients(): Map[(Int, Int), Double] = {
-    val foodNutrientReader = new CSVReader(new FileReader("./data/NUT_DATA.txt"), '^')
+    val foodNutrientReader = new CSVReader(new FileReader("./data/NUT_DATA.txt"), '^','~')
     val foodNutrientsById = foodNutrientReader.readAll().map { foodNutrient =>
-      val foodIdNum = foodNutrient(0).replace("~", "").toInt
-      val nutrientIdNum = foodNutrient(1).replace("~", "").toInt
-      val value = foodNutrient(2).replace("~", "").toDouble
+      val foodIdNum = foodNutrient(0).toInt
+      val nutrientIdNum = foodNutrient(1).toInt
+      val value = foodNutrient(2).toDouble
       //logger.debug(food.mkString(","))
       ((foodIdNum, nutrientIdNum), value)
     }.toMap
@@ -108,10 +108,10 @@ object Database {
   }
 
   protected def readFoods(): List[DBFoodId] = {
-    val foodReader = new CSVReader(new FileReader("./data/FOOD_DES.txt"), '^')
+    val foodReader = new CSVReader(new FileReader("./data/FOOD_DES.txt"), '^','~')
     val foods = foodReader.readAll().map { food =>
-      val idNum = food(0).replace("~", "").toInt
-      val name = food(2).replace("~", "")
+      val idNum = food(0).toInt
+      val name = food(2)
       DBFoodId(idNum, name)
     }.toList
     foodReader.close()
@@ -119,12 +119,12 @@ object Database {
   }
 
   protected def readNutrients(): List[DBNutrient] = {
-    val nutrientReader = new CSVReader(new FileReader("./data/NUTR_DEF.txt"), '^')
+    val nutrientReader = new CSVReader(new FileReader("./data/NUTR_DEF.txt"), '^','~')
     val nutrients = nutrientReader.readAll().map { nutrient =>
-      val idNum = nutrient(0).replace("~", "").toInt
-      val unit = nutrient(1).replace("~", "")
-      val shortName = nutrient(2).replace("~", "")
-      val longName = nutrient(3).replace("~", "")
+      val idNum = nutrient(0).toInt
+      val unit = nutrient(1)
+      val shortName = nutrient(2)
+      val longName = nutrient(3)
       logger.trace(s"Loaded Nutrient (id: $idNum, name: '$shortName' / '$longName', unit: $unit)")
       DBNutrient(idNum, shortName, longName, unit)
     }.toList
