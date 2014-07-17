@@ -43,8 +43,9 @@ object Database {
     cost: Double,
     unit: Unit = Unit.HundredGram,
     id: Option[String] = None,
-    cookingCoef: Double = 1.0): Option[Food] = {
-    val food = foods.find(_.name == dbName).map(dbFoodToFood(_, id, cost, unit, cookingCoef))
+    cookingCoef: Double = 1.0,
+    enabled: Boolean = true): Option[Food] = {
+    val food = foods.find(_.name == dbName).map(dbFoodToFood(_, id, cost, unit, cookingCoef, enabled))
     food.map(food => logger.debug(s"Retrieved Food: $food"))
     food
   }
@@ -53,7 +54,8 @@ object Database {
     food: DBFood,
     id: Option[String] = None,
     cost: Double, unit: Unit,
-    cookingCoef: Double = 1.0): Food = {
+    cookingCoef: Double = 1.0,
+    enabled: Boolean = true): Food = {
     Food(
       id = id.getOrElse(food.name.split(" ")(0).toLowerCase.replace(",", "")),
       cost = cost,
@@ -62,7 +64,9 @@ object Database {
           Some((saneNutrientName(dbNutrient.shortName), amount * cookingCoef))
         case _ => None
       }.toMap,
-      unit = unit
+      unit = unit,
+      cookingCoef = cookingCoef,
+      enabled = enabled
     )
   }
 

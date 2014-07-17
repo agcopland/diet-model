@@ -56,23 +56,24 @@ object Model {
 
   def main (args: Array[String]) {
 
-    foods.foreach { food =>
+    val enabledFoods = foods.filter(_.enabled)
+    enabledFoods.foreach { food =>
       mathematica(s"${food.id}std") <~ food.unit.subdivisionsToHundredGrams * AtomExpression(s"${food.id}div")
     }
-    mathematica("cost") <~ foods.map(food => s"${food.cost} * ${food.id}std").mkString(" + ")
+    mathematica("cost") <~ enabledFoods.map(food => s"${food.cost} * ${food.id}std").mkString(" + ")
     mathematica("adjustedCost") <~ "cost - 0.0002389 * protein"
     nutrients.foreach { case Nutrient(nutrient, _,  _, _, _) =>
-      mathematica(nutrient) <~ foods.map(food => s"${food.nutrients(nutrient)} * ${food.id}std").mkString(" + ")
+      mathematica(nutrient) <~ enabledFoods.map(food => s"${food.nutrients(nutrient)} * ${food.id}std").mkString(" + ")
     }
-    mathematica("foodConstraints") <~ foods.map(food => s"${food.id}div >= 0").mkString(" && ")
-    mathematica("quantizationConstraints") <~ "Element[ " + foods.map(food => s"${food.id}div").mkString(" | ") + " , Integers]"
+    mathematica("foodConstraints") <~ enabledFoods.map(food => s"${food.id}div >= 0").mkString(" && ")
+    mathematica("quantizationConstraints") <~ "Element[ " + enabledFoods.map(food => s"${food.id}div").mkString(" | ") + " , Integers]"
     mathematica("nutrientConstraints") <~ nutrients.filter(_.enforce).flatMap {
       case Nutrient(nutrient, _, min, max, _) =>
         min.map( min => s"$nutrient >= ${min}") ++ max.map( max => s"$nutrient <= ${max}")
     }.mkString(" && ")
     val result: ArrayExpression =
       (mathematica ! s"Minimize[{adjustedCost,foodConstraints && nutrientConstraints && quantizationConstraints}, " +
-        s"{ ${foods.map(food => s"${food.id}div").mkString(", ")} }]").get.asInstanceOf[ArrayExpression]
+        s"{ ${enabledFoods.map(food => s"${food.id}div").mkString(", ")} }]").get.asInstanceOf[ArrayExpression]
 
     val optimalDietDivs: RuleListExpression = result(1).asInstanceOf[RuleListExpression]
 
@@ -99,7 +100,7 @@ object Model {
     logger.info(s"Adjusted Cost: ${result(0)}")
     logger.info(s"Actual Cost: $cost")
     logger.info(s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}")
-    optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit, cookingCoef), amount) =>
+    optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit, cookingCoef, _), amount) =>
       val perYearAmount = (amount * unit.unitToHundredGrams * Pound.hundredGramsToUnit * 365.25).toFloat
       logger.info(s"${foodId.padTo(20, ' ')} ${amount.toFloat.toString.padTo(11, ' ')} ${unit.name.padTo(4, ' ')} " +
       s"${perYearAmount.toString.padTo(11, ' ')} ${Pound.name.padTo(4, ' ')}")
