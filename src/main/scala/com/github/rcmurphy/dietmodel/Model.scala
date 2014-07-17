@@ -54,6 +54,8 @@ object Model {
     getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"))
   ).map(_.get)
 
+  val proteinDiscount = 0.0002389
+
   def main (args: Array[String]) {
 
     val enabledFoods = foods.filter(_.enabled)
@@ -61,7 +63,7 @@ object Model {
       mathematica(s"${food.id}std") <~ food.unit.subdivisionsToHundredGrams * AtomExpression(s"${food.id}div")
     }
     mathematica("cost") <~ enabledFoods.map(food => s"${food.cost} * ${food.id}std").mkString(" + ")
-    mathematica("adjustedCost") <~ "cost - 0.0002389 * protein"
+    mathematica("adjustedCost") <~ s"cost - $proteinDiscount * protein"
     nutrients.foreach { case Nutrient(nutrient, _,  _, _, _) =>
       mathematica(nutrient) <~ enabledFoods.map(food => s"${food.nutrients(nutrient)} * ${food.id}std").mkString(" + ")
     }
@@ -97,6 +99,15 @@ object Model {
       Seq((nutrients.map{n => AtomExpression(n.id)}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
 
+    logger.info("Model Parameters")
+    logger.info(s"Protein Discount: ${proteinDiscount.formatted("%9.7f")}")
+    logger.info("Prices:")
+    foods.grouped(3).foreach { foodLine =>
+      val priceStrs = foodLine.map(food => s"${(food.id + ":").padTo(15,' ')} ${food.cost.formatted("%5.5f")}")
+      logger.info(priceStrs.mkString(" "))
+    }
+    logger.info("Disabled Foods: " + foods.filterNot(_.enabled).mkString(" "))
+    logger.info("Model Results")
     logger.info(s"Adjusted Cost: ${result(0)}")
     logger.info(s"Actual Cost: $cost")
     logger.info(s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}")
@@ -111,14 +122,14 @@ object Model {
       val (maxClose, minClose) = (
         nutrient.maximum.map( max => (max, (max - value) < max * 0.05) ),
         nutrient.minimum.map( min => (min, (value - min) < min * 0.05 )))
-      val unitInd = nutrient.unit.padTo(3, ' ')
+      val unitInd = nutrient.unit.padTo(4, ' ')
       val (boundInd, bound) = ((maxClose), (minClose)) match {
-        case (Some((max, true)), _) => ("⤒", s"Max: ${max.formatted("%5.2f")} $unitInd")
-        case (_, Some((min, true))) => ("⤓", s"Min: ${min.formatted("%5.2f")} $unitInd")
+        case (Some((max, true)), _) => ("⤒", s"Max: ${max.formatted("%8.2f")} $unitInd")
+        case (_, Some((min, true))) => ("⤓", s"Min: ${min.formatted("%8.2f")} $unitInd")
         case _ => (" ", "")
       }
       val enforcedInd = if(!nutrient.enforce) "U" else " "
-      logger.info(s"${nutrient.id.padTo(15, ' ')} $enforcedInd ${value.formatted("%5.2f")} $unitInd\t$boundInd $bound")
+      logger.info(s"${nutrient.id.padTo(15, ' ')} $enforcedInd ${value.formatted("%10.2f")} $unitInd\t$boundInd $bound")
     }
     mathematica.close()
   }
