@@ -6,7 +6,7 @@ import au.com.bytecode.opencsv.CSVReader
 import org.slf4j.LoggerFactory
 
 
-case class Food(id: String, cost: Double, nutrients: Map[String, Double], unit: Unit)
+case class Food(id: String, cost: Double, nutrients: Map[String, Double], unit: Unit, cookingCoef: Double = 1.0)
 /*{
   def this(id: String, cost: Double, dbId: String) = this(id, cost, )
 }*/

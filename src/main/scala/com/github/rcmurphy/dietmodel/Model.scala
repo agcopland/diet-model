@@ -90,7 +90,7 @@ object Model {
     logger.info(s"Adjusted Cost: ${result(0)}")
     logger.info(s"Actual Cost: $cost")
     logger.info(s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}")
-    optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit), amount) =>
+    optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit, cookingCoef), amount) =>
       val perYearAmount = (amount * unit.unitToHundredGrams * Pound.hundredGramsToUnit * 365.25).toFloat
       logger.info(s"${foodId.padTo(20, ' ')} ${amount.toFloat.toString.padTo(11, ' ')} ${unit.name.padTo(4, ' ')} " +
       s"${perYearAmount.toString.padTo(11, ' ')} ${Pound.name.padTo(4, ' ')}")
@@ -101,12 +101,13 @@ object Model {
       val (maxClose, minClose) = (
         nutrient.maximum.map( max => (max - value) < max * 0.05 ),
         nutrient.minimum.map( min => (value - min) < min * 0.05 ))
-      val indicator = (maxClose, minClose) match {
+      val boundIndicator = (maxClose, minClose) match {
         case (Some(true), _) => "⤒"
         case (_, Some(true)) => "⤓"
         case _ => ""
       }
-      logger.info(s"${nutrient.id.padTo(20, ' ')} ${value} ${nutrient.unit} $indicator")
+      val enforcedIndicator = if(nutrient.enforce)
+      logger.info(s"${nutrient.id.padTo(20, ' ')} ${value} ${nutrient.unit} $boundIndicator")
     }
     mathematica.close()
   }
