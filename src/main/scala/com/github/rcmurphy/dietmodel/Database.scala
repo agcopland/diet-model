@@ -69,6 +69,9 @@ object Database {
   protected def saneNutrientName: PartialFunction[String, String] = {
 
     case "CA" => "calcium"
+    case "CARTA" => "carotenealpha"
+    case "CARTB" => "carotenebeta"
+    case "CU" => "copper"
     case "CHOCDF" => "carbohydrates"
     case "CHOLE" => "cholesterol"
     case "CHOLN" => "choline"
@@ -78,15 +81,21 @@ object Database {
     case "FE" => "iron"
     case "FIBTG" => "fiber"
     case "K" => "potassium"
+    case "MN" => "manganese"
     case "NA" => "sodium"
     case "P" => "phosphorus"
     case "PROCNT" => "protein"
+    case "RETOL" => "retinol"
     case "RIBF" => "riboflavin"
+    case "SE" => "selenium"
     case "SUGAR" => "sugar"
     case "VITA_IU" => "vitamina"
+    case "VITB6A" => "vitaminb6"
     case "VITB12" => "vitaminb12"
     case "VITC" => "vitaminc"
+    case "VITD" => "vitamind"
     case "TOCPHA" => "vitamine"
+    case "VITK" => "vitamink"
     case "ZN" => "zinc"
 
   }
