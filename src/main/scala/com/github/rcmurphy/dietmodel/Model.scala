@@ -9,25 +9,34 @@ object Model {
   val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
 
   val nutrients = List(
-    Nutrient("calcium", "mg", minimum = Some(500), maximum = None),
+    Nutrient("calcium", "mg", minimum = Some(500), maximum = Some(2500)),
     Nutrient("carbohydrates", "g", minimum = Some(300), maximum = Some(950)),
+    Nutrient("carotenealpha", "μg", minimum = None, maximum = None, enforce = false),
+    Nutrient("carotenebeta", "μg", minimum = None, maximum = None, enforce = false),
     Nutrient("choline", "mg", minimum = Some(450), maximum = None),
     Nutrient("cholesterol", "mg", minimum = Some(135), maximum = Some(450)),
+    Nutrient("copper", "mg", minimum = Some(0.7), maximum = Some(10), enforce = false),
     Nutrient("energy", "kcal", minimum = Some(3900), maximum = Some(4500)),
     Nutrient("fiber", "g", minimum = Some(35), maximum = Some(180)),
     Nutrient("iron", "mg", minimum = Some(10), maximum = Some(80)),
+    Nutrient("manganese","mg", minimum = Some(2.3), maximum = Some(11), enforce = false),
     Nutrient("potassium", "mg", minimum = Some(4000), maximum = Some(8000)),
     Nutrient("phosphorus", "mg", minimum = Some(480), maximum = Some(4000)),
     Nutrient("protein", "g", minimum = Some(50), maximum = None),
+    Nutrient("retinol", "μg", minimum = None, maximum = Some(3000)),
     Nutrient("riboflavin", "mg", minimum = Some(1.1), maximum = None),
     Nutrient("saturatedfat", "g", minimum = Some(20), maximum = Some(55)),
-    Nutrient("sodium", "mg", minimum = Some(2000), maximum = Some(5000)),
+    Nutrient("selenium", "μg", minimum = Some(45), maximum = Some(400), enforce = false),
+    Nutrient("sodium", "mg", minimum = Some(1500), maximum = Some(5000)),
     Nutrient("sugar", "g", minimum = Some(12), maximum = Some(80)),
     Nutrient("totalfat", "g", minimum = Some(65), maximum = Some(130)),
-    Nutrient("vitamina", "IU", minimum = Some(5000), maximum = None),
+    Nutrient("vitamina", "IU", minimum = Some(3000), maximum = None),
+    Nutrient("vitaminb6", "mg", minimum = Some(1.1), maximum = Some(100), enforce = false),
     Nutrient("vitaminb12", "μg", minimum = Some(2.0), maximum = None),
-    Nutrient("vitaminc", "mg", minimum = Some(40), maximum = None),
-    Nutrient("vitamine", "mg", minimum = None, maximum = None, enforce = false),
+    Nutrient("vitaminc", "mg", minimum = Some(40), maximum = Some(2000)),
+    Nutrient("vitamind", "IU", minimum = Some(400), maximum = Some(4000), enforce = false),
+    Nutrient("vitamine", "mg", minimum = Some(12), maximum = Some(1000), enforce = false),
+    Nutrient("vitamink", "μg", minimum = Some(120), maximum = None, enforce = false),
     Nutrient("zinc", "mg", minimum = Some(9.4), maximum = Some(40))
   )
 
@@ -99,15 +108,16 @@ object Model {
     logger.info("Nutrients:")
     nutrientsWithValues.sortBy(_._1.id).foreach { case (nutrient, value) =>
       val (maxClose, minClose) = (
-        nutrient.maximum.map( max => (max - value) < max * 0.05 ),
-        nutrient.minimum.map( min => (value - min) < min * 0.05 ))
-      val boundIndicator = (maxClose, minClose) match {
-        case (Some(true), _) => "⤒"
-        case (_, Some(true)) => "⤓"
-        case _ => ""
+        nutrient.maximum.map( max => (max, (max - value) < max * 0.05) ),
+        nutrient.minimum.map( min => (min, (value - min) < min * 0.05 )))
+      val unitInd = nutrient.unit.padTo(3, ' ')
+      val (boundInd, bound) = ((maxClose), (minClose)) match {
+        case (Some((max, true)), _) => ("⤒", s"Max: ${max.formatted("%5.2f")} $unitInd")
+        case (_, Some((min, true))) => ("⤓", s"Min: ${min.formatted("%5.2f")} $unitInd")
+        case _ => (" ", "")
       }
-      val enforcedIndicator = if(nutrient.enforce)
-      logger.info(s"${nutrient.id.padTo(20, ' ')} ${value} ${nutrient.unit} $boundIndicator")
+      val enforcedInd = if(!nutrient.enforce) "U" else " "
+      logger.info(s"${nutrient.id.padTo(15, ' ')} $enforcedInd ${value.formatted("%5.2f")} $unitInd\t$boundInd $bound")
     }
     mathematica.close()
   }
