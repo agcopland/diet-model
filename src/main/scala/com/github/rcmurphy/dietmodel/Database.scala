@@ -77,6 +77,7 @@ object Database {
     case "VITA_IU" => "vitamina"
     case "VITB12" => "vitaminb12"
     case "VITC" => "vitaminc"
+    case "TOCPHA" => "vitamine"
     case "ZN" => "zinc"
 
   }

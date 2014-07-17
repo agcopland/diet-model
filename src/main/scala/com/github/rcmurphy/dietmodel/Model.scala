@@ -27,6 +27,7 @@ object Model {
     Nutrient("vitamina", "IU", minimum = Some(5000), maximum = None),
     Nutrient("vitaminb12", "μg", minimum = Some(2.0), maximum = None),
     Nutrient("vitaminc", "mg", minimum = Some(40), maximum = None),
+    Nutrient("vitamine", "mg", minimum = None, maximum = None, enforce = false),
     Nutrient("zinc", "mg", minimum = Some(9.4), maximum = Some(40))
   )
 
