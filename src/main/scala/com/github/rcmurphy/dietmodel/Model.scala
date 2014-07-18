@@ -54,7 +54,7 @@ object Model {
     getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"))
   ).map(_.get)
 
-  val proteinDiscount = 0.0002389
+  val proteinDiscount = 0.000002389
 
   def main (args: Array[String]) {
 
@@ -100,7 +100,7 @@ object Model {
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
 
     logger.info("Model Parameters")
-    logger.info(s"Protein Discount: ${proteinDiscount.formatted("%9.7f")}")
+    logger.info(s"Protein Discount: ${proteinDiscount.formatted("%9.9f")}")
     logger.info("Prices:")
     foods.grouped(3).foreach { foodLine =>
       val priceStrs = foodLine.map(food => s"${(food.id + ":").padTo(15,' ')} ${food.cost.formatted("%5.5f")}")
