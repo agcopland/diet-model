@@ -44,6 +44,9 @@ object Unit {
   val Pound = Unit("lb", 453.592, 1 * 7)
   val QuarterPound = Unit("lb₄", 453.592, 4 * 7)
   val EighthPound = Unit("lb₈", 453.592, 8 * 7)
+  val Ounce = Unit("oz", 453.592, 16 * 7)
+  val QuarterOunce = Unit("oz₄", 453.592, 4 * 16 * 7)
+  val SixteenthOunce = Unit("oz₁₆", 453.592, 16 * 16 * 7)
 
   val BushelCorn = Unit("Bc", 56 * 453.592, 16 * 7)
   val BushelOats = Unit("Bo", 32 * 453.592, 16 * 7)

@@ -5,4 +5,8 @@ package object mathematica {
   implicit def intToIntExpr(value: Int) = IntegerExpression(value)
   implicit def intExprToInt(expr: IntegerExpression) = expr.value
   implicit def seqToArrayExpr(seq: Seq[Expression]) = ArrayExpression(seq)
+
+  /* Atom Expression Builder (allows "x".a -> AtomExpression("x")) */
+
+  implicit def strToAtomBuilder(str: String) = AtomExpressionBuilder(str)
 }
