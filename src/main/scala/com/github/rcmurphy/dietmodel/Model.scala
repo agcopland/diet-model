@@ -13,9 +13,8 @@ object Model {
 
   private def getVersion: String = {
     val nullProcessLogger = ProcessLogger(line => {}, line => {})
-    Try("git describe --long".!!(nullProcessLogger)).orElse(
-      Try("git describe --long --all".!!(nullProcessLogger))
-    ).getOrElse("Unknown").trim
+    Try("git describe --long --always".!!(nullProcessLogger).trim + "-" +
+      "git rev-parse --abbrev-ref HEAD".!!(nullProcessLogger).trim).getOrElse("unknown")
   }
 
   val nutrients = List(
