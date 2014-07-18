@@ -1,12 +1,22 @@
 package com.github.rcmurphy.dietmodel
 
-import com.github.rcmurphy.dietmodel.mathematica._
-import org.slf4j.LoggerFactory
 import com.github.rcmurphy.dietmodel.Unit._
 import com.github.rcmurphy.dietmodel.Database.getFood
+import com.github.rcmurphy.dietmodel.mathematica._
+import org.slf4j.LoggerFactory
+import scala.sys.process._
+import scala.util.Try
+
 object Model {
   def logger = LoggerFactory.getLogger(getClass)
   val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
+
+  private def getVersion: String = {
+    val nullProcessLogger = ProcessLogger(line => {}, line => {})
+    Try("git describe --long".!!(nullProcessLogger)).orElse(
+      Try("git describe --long --all".!!(nullProcessLogger))
+    ).getOrElse("Unknown").trim
+  }
 
   val nutrients = List(
     Nutrient("calcium", "mg", minimum = Some(500), maximum = Some(2500)),
@@ -107,8 +117,9 @@ object Model {
     val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
       Seq((nutrients.map{n => AtomExpression(n.id)}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
-
+    val version: String = getVersion
     logger.info("*** Model Parameters ***")
+    logger.info("Version: " + version)
     logger.info(s"Quantized: ${if(quantized) "Y" else "N"}")
     logger.info(s"Protein Discount: ${proteinDiscount.formatted("%9.9f")}")
     logger.info("Prices:")
@@ -116,7 +127,8 @@ object Model {
       val priceStrs = foodLine.map(food => s"${(food.id + ":").padTo(15,' ')} ${food.cost.formatted("%5.5f")}")
       logger.info(priceStrs.mkString(" "))
     }
-    logger.info("Disabled Foods: " + foods.filterNot(_.enabled).mkString(" "))
+    logger.info("Disabled Foods: " + foods.filterNot(_.enabled).map(_.id).mkString(" "))
+    logger.info("Unconstrained Nutrients: " + nutrients.filterNot(_.enforce).map(_.id).mkString(" "))
     logger.info("*** Model Results ***")
     logger.info(s"Adjusted Cost: ${result(0)}")
     logger.info(s"Actual Cost: $cost")
