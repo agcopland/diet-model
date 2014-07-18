@@ -85,6 +85,7 @@ object Database {
     case "FE" => "iron"
     case "FIBTG" => "fiber"
     case "K" => "potassium"
+    case "MG" => "magnesium"
     case "MN" => "manganese"
     case "NA" => "sodium"
     case "P" => "phosphorus"

@@ -13,6 +13,10 @@ sealed trait Expression {
     FunctionExpression("Plus", Seq(this, other))
   }
 
+  def -(other: Expression): Expression = {
+    FunctionExpression("Subtract", Seq(this, other))
+  }
+
   def toMathematica: String
 }
 sealed trait ConstantExpression[T] extends Expression {
@@ -88,6 +92,9 @@ case class AtomExpression(name: String) extends Expression {
   override def toMathematica: String = name
 }
 
+case class AtomExpressionBuilder(name: String) {
+  def a: AtomExpression = AtomExpression(name)
+}
 case class IntegerExpression(value: Int) extends ConstantExpression[Int]
 
 case class BigDecimalExpression(value: BigDecimal) extends ConstantExpression[BigDecimal] {
