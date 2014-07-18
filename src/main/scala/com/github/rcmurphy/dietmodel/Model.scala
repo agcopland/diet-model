@@ -54,16 +54,16 @@ object Model {
   val foods = List(
     getFood("Beef, composite of trimmed retail cuts, separable lean and fat, trimmed to 1/8\" fat, all grades, cooked", 0.01881, QuarterPound, cookingCoef = 0.88),
     getFood("Butter, without salt", 0.0275, EighthPound),
-    getFood("Corn, white, steamed (Navajo)", 0.00183, BushelCorn),
-    getFood("Wheat flour, whole-grain", 0.0037, SixteenthDryLitre, id = Some("flour")),
+    getFood("Corn, white, steamed (Navajo)", 0.00183, BushelCorn, cookingCoef = 1.03),
+    getFood("Wheat flour, whole-grain", 0.00496, SixteenthDryLitre, id = Some("flour"), cookingCoef = 0.9),
     getFood("Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D", 0.003496, QuarterPound),
     getFood("Molasses", 0.014501, SixteenthOunce),
     getFood("Lamb, domestic, composite of trimmed retail cuts, separable lean and fat, trimmed to 1/4\" fat, choice, cooked", 0.025, EighthPound, id = Some("mutton"), cookingCoef = 0.74),
     getFood("Oats", 0.005, BushelOats),
-    getFood("Peas, split, mature seeds, raw", 0.0041, BushelPeas),
+    getFood("Peas, split, mature seeds, cooked, boiled, without salt", 0.0041, BushelPeas, cookingCoef = 0.95),
     getFood("Pork, cured, bacon, cooked, baked", 0.02475, QuarterPound, cookingCoef = 0.7),
-    getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes")),
-    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"))
+    getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes"), cookingCoef = 1.05),
+    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"), cookingCoef = 1.05)
   ).flatMap(food => food match {
     case Some(food) => Some(food)
     case None =>
