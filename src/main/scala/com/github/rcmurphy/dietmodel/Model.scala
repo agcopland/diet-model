@@ -62,7 +62,8 @@ object Model {
     getFood("Peas, split, mature seeds, raw", 0.0041, BushelPeas),
     getFood("Pork, cured, bacon, raw", 0.02475, QuarterPound),
     getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes")),
-    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"))
+    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes")),
+    getFood("Rice, white, long-grain, regular, raw, unenriched", 0.00854292, QuarterPound)
   ).flatMap(food => food match {
     case Some(food) => Some(food)
     case None =>
