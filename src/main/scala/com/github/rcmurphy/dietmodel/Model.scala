@@ -38,7 +38,7 @@ object Model {
     Nutrient("saturatedfat", "g", minimum = Some(20), maximum = Some(55)),
     Nutrient("selenium", "μg", minimum = Some(45), maximum = Some(400), enforce = false),
     Nutrient("sodium", "mg", minimum = Some(1500), maximum = Some(5000)),
-    Nutrient("sugar", "g", minimum = Some(12), maximum = Some(80)),
+    Nutrient("sugar", "g", minimum = Some(12), maximum = Some(120)),
     Nutrient("totalfat", "g", minimum = Some(65), maximum = Some(130)),
     Nutrient("vitamina", "IU", minimum = Some(3000), maximum = None),
     Nutrient("vitaminb6", "mg", minimum = Some(1.1), maximum = Some(100), enforce = false),
@@ -61,8 +61,8 @@ object Model {
     getFood("Oats", 0.005, BushelOats),
     getFood("Peas, split, mature seeds, cooked, boiled, without salt", 0.0041, BushelPeas, cookingCoef = 0.95),
     getFood("Pork, cured, bacon, cooked, baked", 0.02475, QuarterPound, cookingCoef = 0.7),
-    getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes"), cookingCoef = 1.05),
-    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"), cookingCoef = 1.05),
+    getFood("Sweet potato, cooked, boiled, without skin", 0.0026, BushelPotatoes, id = Some("sweetpotatoes"), cookingCoef = 1.05),
+    getFood("Potatoes, boiled, cooked in skin, flesh, without salt", 0.00352, BushelPotatoes, id = Some("whitepotatoes"), cookingCoef = 1.05),
     getFood("Rice, white, long-grain, regular, cooked, unenriched, without salt", 0.00854292, QuarterPound, cookingCoef = 2.6)
   ).flatMap(food => food match {
     case Some(food) => Some(food)
