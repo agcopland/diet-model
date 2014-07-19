@@ -109,12 +109,12 @@ object Model {
       }
     }.toMap
 
-    val cost = (mathematica ! FunctionExpression("ReplaceAll", Seq(AtomExpression("cost"), optimalDietDivs))).get
+    val cost = (mathematica ! FunctionExpression("ReplaceAll", Seq("cost".a, optimalDietDivs))).get
 
-    val protein = (mathematica ! FunctionExpression("ReplaceAll", Seq(AtomExpression("protein"), optimalDietDivs))).get
+    val protein = (mathematica ! FunctionExpression("ReplaceAll", Seq("protein".a, optimalDietDivs))).get
 
     val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
-      Seq((nutrients.map{n => AtomExpression(n.id)}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
+      Seq((nutrients.map{n => n.id.a}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
     val version: String = getVersion
     logger.info("*** Model Parameters ***")
