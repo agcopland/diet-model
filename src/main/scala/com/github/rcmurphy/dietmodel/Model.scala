@@ -54,7 +54,7 @@ object Model {
     getFood("Beef, composite of trimmed retail cuts, separable lean and fat, trimmed to 1/8\" fat, all grades, cooked", 0.01881, QuarterPound, cookingCoef = 0.88),
     getFood("Butter, without salt", 0.0275, EighthPound),
     getFood("Corn, white, steamed (Navajo)", 0.00183, BushelCorn, cookingCoef = 1.03),
-    getFood("Wheat flour, whole-grain", 0.00496, SixteenthDryLitre, id = Some("flour"), cookingCoef = 0.9),
+    getFood("Wheat flours, bread, unenriched", 0.00496, SixteenthDryLitre, id = Some("flour"), cookingCoef = 0.9),
     getFood("Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D", 0.003496, QuarterPound),
     getFood("Molasses", 0.014501, SixteenthOunce),
     getFood("Lamb, domestic, composite of trimmed retail cuts, separable lean and fat, trimmed to 1/4\" fat, choice, cooked", 0.025, EighthPound, id = Some("mutton"), cookingCoef = 0.74),
