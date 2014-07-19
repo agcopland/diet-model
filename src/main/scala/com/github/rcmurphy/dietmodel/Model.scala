@@ -62,7 +62,8 @@ object Model {
     getFood("Peas, split, mature seeds, cooked, boiled, without salt", 0.0041, BushelPeas, cookingCoef = 0.95),
     getFood("Pork, cured, bacon, cooked, baked", 0.02475, QuarterPound, cookingCoef = 0.7),
     getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes"), cookingCoef = 1.05),
-    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"), cookingCoef = 1.05)
+    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes"), cookingCoef = 1.05),
+    getFood("Rice, white, long-grain, regular, cooked, unenriched, without salt", 0.00854292, QuarterPound, cookingCoef = 2.6)
   ).flatMap(food => food match {
     case Some(food) => Some(food)
     case None =>
@@ -109,12 +110,12 @@ object Model {
       }
     }.toMap
 
-    val cost = (mathematica ! FunctionExpression("ReplaceAll", Seq(AtomExpression("cost"), optimalDietDivs))).get
+    val cost = (mathematica ! FunctionExpression("ReplaceAll", Seq("cost".a, optimalDietDivs))).get
 
-    val protein = (mathematica ! FunctionExpression("ReplaceAll", Seq(AtomExpression("protein"), optimalDietDivs))).get
+    val protein = (mathematica ! FunctionExpression("ReplaceAll", Seq("protein".a, optimalDietDivs))).get
 
     val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
-      Seq((nutrients.map{n => AtomExpression(n.id)}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
+      Seq((nutrients.map{n => n.id.a}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
     val version: String = getVersion
     logger.info("*** Model Parameters ***")
