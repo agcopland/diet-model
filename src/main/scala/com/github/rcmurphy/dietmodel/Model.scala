@@ -51,7 +51,7 @@ object Model {
   )
 
   val foods = List(
-    getFood("Beef, carcass, separable lean and fat, select, raw", 0.01881, QuarterPound),
+    getFood("Beef, carcass, separable lean and fat, select, raw", 0.01881, EighthPound),
     getFood("Butter, without salt", 0.0275, EighthPound),
     getFood("Corn, white, steamed (Navajo)", 0.00183, BushelCorn),
     getFood("Wheat flour, whole-grain", 0.0037, SixteenthDryLitre, id = Some("flour")),
@@ -60,7 +60,7 @@ object Model {
     getFood("Mutton, cooked, roasted (Navajo)", 0.025, EighthPound),
     getFood("Oats", 0.005, BushelOats),
     getFood("Peas, split, mature seeds, raw", 0.0041, BushelPeas),
-    getFood("Pork, cured, bacon, raw", 0.02475, QuarterPound),
+    getFood("Pork, cured, bacon, raw", 0.02475, EighthPound),
     getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes")),
     getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes")),
     getFood("Rice, white, long-grain, regular, raw, unenriched", 0.00854292, QuarterPound)

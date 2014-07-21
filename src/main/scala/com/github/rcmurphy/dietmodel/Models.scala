@@ -48,9 +48,9 @@ object Unit {
   val QuarterOunce = Unit("oz₄", 453.592, 4 * 16 * 7)
   val SixteenthOunce = Unit("oz₁₆", 453.592, 16 * 16 * 7)
 
-  val BushelCorn = Unit("Bc", 56 * 453.592, 16 * 7)
-  val BushelOats = Unit("Bo", 32 * 453.592, 16 * 7)
-  val BushelPeas = Unit("Bpe", 25 * 453.592, 16 * 7)
-  val BushelPotatoes = Unit("Bpo", 50 * 453.592, 16 * 7)
+  val BushelCorn = Unit("Bc", 56 * 453.592, 24 * 7)
+  val BushelOats = Unit("Bo", 32 * 453.592, 24 * 7)
+  val BushelPeas = Unit("Bpe", 25 * 453.592, 24 * 7)
+  val BushelPotatoes = Unit("Bpo", 50 * 453.592, 24 * 7)
 
 }
