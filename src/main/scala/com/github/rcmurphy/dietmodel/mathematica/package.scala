@@ -9,4 +9,8 @@ package object mathematica {
   /* Atom Expression Builder (allows "x".a -> AtomExpression("x")) */
 
   implicit def strToAtomBuilder(str: String) = AtomExpressionBuilder(str)
+
+  implicit def ruleListToListRule(ruleList: RuleSetExpression) = {
+    ArrayExpression(ruleList.rules.map { case (name, value) => FunctionExpression("Rule", Seq(name.a, value)) }.toSeq)
+  }
 }

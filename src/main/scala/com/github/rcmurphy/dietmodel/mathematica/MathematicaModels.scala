@@ -17,12 +17,12 @@ sealed trait Expression {
     FunctionExpression("Subtract", Seq(this, other))
   }
 
-  def toMathematica: String
+  protected[mathematica] def toMathematica: String
 }
 sealed trait ConstantExpression[T] extends Expression {
   def value: T
   override def toString: String = value.toString
-  override def toMathematica: String = value.toString
+  protected[mathematica] override def toMathematica: String = value.toString
 }
 
 object Expression {
@@ -36,7 +36,7 @@ object Expression {
         case child: FunctionExpression if child.name == "Rule" && child.values.length == 2 => true
         case _ => false
       }) {
-        RuleListExpression(children.map {
+        RuleSetExpression(children.map {
           case FunctionExpression("Rule", Seq(name, value)) => (name.toString, value)
         }.toMap)
       } else {
@@ -68,9 +68,9 @@ case class ArrayExpression(values: Seq[Expression])
 
   override def toString(): String = values.mkString("{ ", " , "," }")
 
-  override def toMathematica: String = values.map(_.toMathematica).mkString("{ ", " , "," }")
+  protected[mathematica] override def toMathematica: String = values.map(_.toMathematica).mkString("{ ", " , "," }")
 }
-case class RuleListExpression(rules: Map[String, Expression])
+case class RuleSetExpression(rules: Map[String, Expression])
   extends Expression with Map[String, Expression] {
   override def +[B1 >: Expression](kv: (String, B1)): Map[String, B1] = rules + kv
 
@@ -82,14 +82,14 @@ case class RuleListExpression(rules: Map[String, Expression])
 
   override def toString(): String = rules.map { case (name, value) => s"$name ← $value" }.mkString("ℜ{ ", " , "," }")
 
-  override def toMathematica: String =
+  protected[mathematica] override def toMathematica: String =
     rules.map { case (name, value) => s"Rule[$name, ${value.toMathematica}]" }.mkString("{ ", " , "," }")
 }
 
 case class AtomExpression(name: String) extends Expression {
   override def toString: String = name
 
-  override def toMathematica: String = name
+  protected[mathematica] override def toMathematica: String = name
 }
 
 case class AtomExpressionBuilder(name: String) {
@@ -126,7 +126,7 @@ case class FunctionExpression(name: String, values: Seq[Expression]) extends Exp
     }
   }
 
-  override def toMathematica: String = s"$name" + values.map(_.toMathematica).mkString("[ ", " , "," ]")
+  protected[mathematica] override def toMathematica: String = s"$name" + values.map(_.toMathematica).mkString("[ ", " , "," ]")
 }
 object FunctionExpression {
   val binaryOperators = Map(
