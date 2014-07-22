@@ -17,7 +17,7 @@ class MathematicaSpec extends FlatSpec with Matchers {
   }
 
   it must "accept integers and BigDecimals" in {
-    (mathematica ! 4) == (4)
+    (mathematica ! 4).get == (4)
   }
 
 }
