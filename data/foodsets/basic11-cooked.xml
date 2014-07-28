@@ -1,0 +1,15 @@
+<foodset>
+    <food name="Beef, composite of trimmed retail cuts, separable lean and fat, trimmed to 1/8&quot; fat, all grades, cooked"       price="0.01881" unit="QuarterPound" cookingCoef="0.88" />
+    <food name="Butter, without salt"                                                                                               price="0.0275" unit="EighthPound" />
+    <food name="Corn, white, steamed (Navajo)"                                                                                      price="0.00183" unit="BushelCorn" cookingCoef="1.03" />
+    <food name="Wheat flours, bread, unenriched"                                                                                    price="0.00496" unit="SixteenthDryLitre" cookingCoef="0.9" id="flour" />
+    <food name="Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D"                                                  price="0.003496" unit="QuarterPound" />
+    <food name="Molasses"                                                                                                           price="0.014501" unit="SixteenthOunce" enabled="false" />
+    <food name="Lamb, domestic, composite of trimmed retail cuts, separable lean and fat, trimmed to 1/4&quot; fat, choice, cooked" price="0.025" unit="EighthPound" cookingCoef="0.74" id="mutton" />
+    <food name="Oats"                                                                                                               price="0.005" unit="BushelOats" />
+    <food name="Peas, split, mature seeds, cooked, boiled, without salt"                                                            price="0.0041" unit="BushelPeas" cookingCoef="0.95" />
+    <food name="Pork, cured, bacon, cooked, baked"                                                                                  price="0.02475" unit="QuarterPound" cookingCoef="0.7" />
+    <food name="Sweet potato, cooked, boiled, without skin"                                                                         price="0.0026" unit="BushelPotatoes" cookingCoef="1.05" id="sweetpotatoes" />
+    <food name="Potatoes, boiled, cooked in skin, flesh, without salt"                                                              price="0.00352" unit="BushelPotatoes" cookingCoef="1.05" id="whitepotatoes" />
+    <food name="Rice, white, long-grain, regular, cooked, unenriched, without salt"                                                 price="0.00854292" unit="QuarterPound" cookingCoef=" 2.6" enabled="false" />
+</foodset>

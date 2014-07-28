@@ -1,4 +1,4 @@
-<nutrients>
+<nutrientset>
     <nutrient name="calcium"        unit="mg"   minimum="500"   maximum="2500" />
     <nutrient name="carbohydrates"  unit="g"    minimum="300"   maximum="950" />
     <nutrient name="carotenealpha"  unit="μg"   minimum="None"  maximum="None"  enforce="false" />
@@ -29,4 +29,4 @@
     <nutrient name="vitamine"       unit="mg"   minimum="12"    maximum="1000"  enforce="false" />
     <nutrient name="vitamink"       unit="μg"   minimum="120"   maximum="None"  enforce="false" />
     <nutrient name="zinc"           unit="mg"   minimum="9.4"   maximum="40" />
-</nutrients>
+</nutrientset>

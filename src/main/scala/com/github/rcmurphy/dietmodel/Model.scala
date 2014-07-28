@@ -1,7 +1,8 @@
 package com.github.rcmurphy.dietmodel
 
+import java.io.{FileWriter, File}
+
 import com.github.rcmurphy.dietmodel.Model._
-import com.github.rcmurphy.dietmodel.Unit._
 import com.github.rcmurphy.dietmodel.Database.getFood
 import com.github.rcmurphy.scalamath.mathematica._
 import org.slf4j.LoggerFactory
@@ -70,16 +71,25 @@ object Model {
       getFood(name, price, unit, id, cookingCoef, enabled)
     }.toList
   }
+  def using[A <: {def close(): scala.Unit}, B](param: A)(f: A => B): B =
+    try { f(param) } finally { param.close() }
+  def writeToFile(fileName:String, data:String) =
+    using (new FileWriter(fileName)) {
+      fileWriter => fileWriter.write(data)
+    }
 
   def main(args: Array[String]) {
     getModelParams.foreach{ modelParams =>
-      new Model(
+
+      val result = new Model(
         modelParams.name,
         getFoods(modelParams.foodSet),
         getNutrients(modelParams.nutrientSet),
         modelParams.proteinDiscount,
         modelParams.quantized
       ).run()
+
+      writeToFile(s"output/model-${modelParams.name}-result.txt", result)
     }
   }
 }
@@ -87,17 +97,17 @@ class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinD
   def logger = LoggerFactory.getLogger(getClass)
   val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
 
-  def run() = {
+  def run(): String = {
     val enabledFoods = foods.filter(_.enabled)
     enabledFoods.foreach { food =>
-      mathematica(s"${food.id}std") <~ food.unit.subdivisionsToHundredGrams * AtomExpression(s"${food.id}div")
+      mathematica(s"${food.id}std") <~ food.unit.subdivisionsToHundredGrams * s"${food.id}div".a
     }
-    mathematica("cost") <~ enabledFoods.map(food => s"${food.cost} * ${food.id}std").mkString(" + ")
+    mathematica("cost") <~ "Plus".f(enabledFoods.map(food => food.cost * s"${food.id}std".a): _*)
     mathematica("adjustedCost") <~ "cost".a - proteinDiscount * "protein".a
-    nutrients.foreach { case Nutrient(nutrient, _,  _, _, _) =>
-      mathematica(nutrient) <~ enabledFoods.map(food => s"${food.nutrients(nutrient)} * ${food.id}std").mkString(" + ")
+    nutrients.foreach { case Nutrient(nutrient, _, _, _, _) =>
+      mathematica(nutrient) <~ "Plus".f(enabledFoods.map(food => food.nutrients(nutrient) * s"${food.id}std".a): _*)
     }
-    mathematica("foodConstraints") <~ enabledFoods.map(food => s"${food.id}div >= 0").mkString(" && ")
+    mathematica("foodConstraints") <~ "And".f(enabledFoods.map(food => s"${food.id}div".a >= 0): _*)
     mathematica("quantizationConstraints") <~ "Element[ " + enabledFoods.map(food => s"${food.id}div").mkString(" | ") +
       s" , ${if(quantized) "Integers" else "Reals"}]"
     mathematica("nutrientConstraints") <~ nutrients.filter(_.enforce).flatMap {
@@ -129,29 +139,31 @@ class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinD
     val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
       Seq((nutrients.map{n => n.id.a}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
-    logger.info("*** Model Parameters ***")
-    logger.info(s"Name: $name")
-    logger.info(s"Version: $getVersion")
-    logger.info(s"Quantized: ${if(quantized) "Y" else "N"}")
-    logger.info(s"Protein Discount: ${proteinDiscount.formatted("%9.9f")}")
-    logger.info("Prices:")
+    val newLine = sys.props("line.separator")
+    val resultBuilder = new StringBuilder()
+    resultBuilder ++= "*** Model Parameters ***" + newLine
+    resultBuilder ++= s"Name: $name" + newLine
+    resultBuilder ++= s"Version: $getVersion" + newLine
+    resultBuilder ++= s"Quantized: ${if(quantized) "Y" else "N"}" + newLine
+    resultBuilder ++= s"Protein Discount: ${proteinDiscount.formatted("%9.9f")}" + newLine
+    resultBuilder ++= "Prices:" + newLine
     foods.grouped(3).foreach { foodLine =>
       val priceStrs = foodLine.map(food => s"${(food.id + ":").padTo(15,' ')} ${food.cost.formatted("%5.5f")}")
-      logger.info(priceStrs.mkString(" "))
+      resultBuilder ++= priceStrs.mkString(" ") + newLine
     }
-    logger.info("Disabled Foods: " + foods.filterNot(_.enabled).map(_.id).mkString(" "))
-    logger.info("Unconstrained Nutrients: " + nutrients.filterNot(_.enforce).map(_.id).mkString(" "))
-    logger.info("*** Model Results ***")
-    logger.info(s"Adjusted Cost: ${result(0)}")
-    logger.info(s"Actual Cost: $cost")
-    logger.info(s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}")
+    resultBuilder ++= "Disabled Foods: " + foods.filterNot(_.enabled).map(_.id).mkString(" ") + newLine
+    resultBuilder ++= "Unconstrained Nutrients: " + nutrients.filterNot(_.enforce).map(_.id).mkString(" ") + newLine
+    resultBuilder ++= "*** Model Results ***" + newLine
+    resultBuilder ++= s"Adjusted Cost: ${result(0)}" + newLine
+    resultBuilder ++= s"Actual Cost: $cost" + newLine
+    resultBuilder ++= s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}" + newLine
     optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit, cookingCoef, _), amount) =>
       val perYearAmount = (amount * unit.unitToHundredGrams * Unit.byName("Pound").hundredGramsToUnit * 365.25).toFloat
-      logger.info(s"${foodId.padTo(20, ' ')} ${amount.toFloat.toString.padTo(11, ' ')} ${unit.name.padTo(4, ' ')} " +
-      s"${perYearAmount.toString.padTo(11, ' ')} ${Unit.byName("Pound").name.padTo(4, ' ')}")
+      resultBuilder ++= s"${foodId.padTo(20, ' ')} ${amount.toFloat.toString.padTo(11, ' ')} ${unit.name.padTo(4, ' ')} " +
+      s"${perYearAmount.toString.padTo(11, ' ')} ${Unit.byName("Pound").name.padTo(4, ' ')}" + newLine
     }
 
-    logger.info("Nutrients:")
+    resultBuilder ++= "Nutrients:" + newLine
     nutrientsWithValues.sortBy(_._1.id).foreach { case (nutrient, value) =>
       val (maxClose, minClose) = (
         nutrient.maximum.map( max => (max, (max - value) < max * 0.05) ),
@@ -163,11 +175,12 @@ class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinD
         case _ => (" ", "")
       }
       val enforcedInd = if(!nutrient.enforce) "U" else " "
-      logger.info(s"\t${nutrient.id.padTo(15, ' ')} $enforcedInd\t${value.formatted("%10.2f")} $unitInd\t$boundInd $bound")
+      resultBuilder ++= s"\t${nutrient.id.padTo(15, ' ')} $enforcedInd\t${value.formatted("%10.2f")} $unitInd\t$boundInd $bound" + newLine
     }
     logger.info("Closing Link")
     mathematica.close()
     logger.info("Link Closed")
+    resultBuilder.toString
   }
 
 }

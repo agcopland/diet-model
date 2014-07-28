@@ -1,3 +1,33 @@
 <models>
-    <model name="1.1" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.0" quantized="true" />
+    <model name="1.1" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.0" quantized="false" />
+
+
+    <model name="2.1" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.0" quantized="true" />
+    <model name="2.2" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.0" quantized="true" />
+
+
+    <model name="3.1" foodSet="basic11-cooked" nutrientSet="standard" proteinDiscount="0.0" quantized="true" />
+    <model name="3.2" foodSet="expanded-cooked" nutrientSet="standard" proteinDiscount="0.0" quantized="true" />
+
+
+    <model name="4.1" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00000907315068" quantized="true" />
+    <model name="4.2" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00006627491781" quantized="true" />
+    <model name="4.3" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00001815863014" quantized="true" />
+    <model name="4.4" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.0001325498356" quantized="true" />
+
+    <model name="4.5" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00000907315068" quantized="true" />
+    <model name="4.6" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00006627491781" quantized="true" />
+    <model name="4.7" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00001815863014" quantized="true" />
+    <model name="4.8" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.0001325498356" quantized="true" />
+
+
+    <model name="5.1" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00000661461" quantized="true" />
+    <model name="5.2" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00004454151" quantized="true" />
+    <model name="5.3" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00001322921" quantized="true" />
+    <model name="5.4" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.00008908303" quantized="true" />
+
+    <model name="5.5" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00000661461" quantized="true" />
+    <model name="5.6" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00004454151" quantized="true" />
+    <model name="5.7" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00001322921" quantized="true" />
+    <model name="5.8" foodSet="expanded" nutrientSet="standard" proteinDiscount="0.00008908303" quantized="true" />
 </models>
