@@ -1,10 +1,11 @@
 package com.github.rcmurphy.dietmodel
 
-import java.io.FileReader
-
-import au.com.bytecode.opencsv.CSVReader
-import org.slf4j.LoggerFactory
-
+case class ModelParams(
+  name: String,
+  foodSet: String,
+  nutrientSet: String,
+  proteinDiscount: BigDecimal,
+  quantized: Boolean)
 
 case class Food(
   id: String,
@@ -36,21 +37,23 @@ case class Unit(name: String, grams: Double, maxSubdivisions: Int) {
 }
 
 object Unit {
-  val Kilogram = Unit("Kg", 1000.0, 1)
-  val HundredGram = Unit("hg", 100.0, 100)
+  val byName = Map(
+  "Kilogram" -> Unit("Kg", 1000.0, 1),
+  "HundredGram" -> Unit("hg", 100.0, 100),
 
-  val SixteenthDryLitre = Unit("l₁₆", 480, 16 * 7)
+  "SixteenthDryLitre" -> Unit("l₁₆", 480, 16 * 7),
 
-  val Pound = Unit("lb", 453.592, 1 * 7)
-  val QuarterPound = Unit("lb₄", 453.592, 4 * 7)
-  val EighthPound = Unit("lb₈", 453.592, 8 * 7)
-  val Ounce = Unit("oz", 453.592, 16 * 7)
-  val QuarterOunce = Unit("oz₄", 453.592, 4 * 16 * 7)
-  val SixteenthOunce = Unit("oz₁₆", 453.592, 16 * 16 * 7)
+  "Pound" -> Unit("lb", 453.592, 1 * 7),
+  "QuarterPound" -> Unit("lb₄", 453.592, 4 * 7),
+  "EighthPound" -> Unit("lb₈", 453.592, 8 * 7),
+  "Ounce" -> Unit("oz", 453.592, 16 * 7),
+  "QuarterOunce" -> Unit("oz₄", 453.592, 4 * 16 * 7),
+  "SixteenthOunce" -> Unit("oz₁₆", 453.592, 16 * 16 * 7),
 
-  val BushelCorn = Unit("Bc", 56 * 453.592, 24 * 7)
-  val BushelOats = Unit("Bo", 32 * 453.592, 24 * 7)
-  val BushelPeas = Unit("Bpe", 25 * 453.592, 24 * 7)
-  val BushelPotatoes = Unit("Bpo", 50 * 453.592, 24 * 7)
+  "BushelCorn" -> Unit("Bc", 56 * 453.592, 24 * 7),
+  "BushelOats" -> Unit("Bo", 32 * 453.592, 24 * 7),
+  "BushelPeas" -> Unit("Bpe", 25 * 453.592, 24 * 7),
+  "BushelPotatoes" -> Unit("Bpo", 50 * 453.592, 24 * 7)
+  )
 
 }

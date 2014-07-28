@@ -1,0 +1,3 @@
+<models>
+    <model name="1.1" foodSet="basic11" nutrientSet="standard" proteinDiscount="0.0" quantized="true" />
+</models>

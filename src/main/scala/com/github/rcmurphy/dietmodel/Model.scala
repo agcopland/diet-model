@@ -1,15 +1,16 @@
 package com.github.rcmurphy.dietmodel
 
+import com.github.rcmurphy.dietmodel.Model._
 import com.github.rcmurphy.dietmodel.Unit._
 import com.github.rcmurphy.dietmodel.Database.getFood
-import com.github.rcmurphy.dietmodel.mathematica._
+import com.github.rcmurphy.scalamath.mathematica._
 import org.slf4j.LoggerFactory
 import scala.sys.process._
 import scala.util.Try
+import scala.xml.{NodeSeq, XML}
 
 object Model {
   def logger = LoggerFactory.getLogger(getClass)
-  val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
 
   private def getVersion: String = {
     val nullProcessLogger = ProcessLogger(line => {}, line => {})
@@ -17,65 +18,76 @@ object Model {
       "git rev-parse --abbrev-ref HEAD".!!(nullProcessLogger).trim).getOrElse("unknown")
   }
 
-  val nutrients = List(
-    Nutrient("calcium", "mg", minimum = Some(500), maximum = Some(2500)),
-    Nutrient("carbohydrates", "g", minimum = Some(300), maximum = Some(950)),
-    Nutrient("carotenealpha", "μg", minimum = None, maximum = None, enforce = false),
-    Nutrient("carotenebeta", "μg", minimum = None, maximum = None, enforce = false),
-    Nutrient("choline", "mg", minimum = Some(450), maximum = None),
-    Nutrient("cholesterol", "mg", minimum = Some(135), maximum = Some(450)),
-    Nutrient("copper", "mg", minimum = Some(0.7), maximum = Some(10), enforce = false),
-    Nutrient("energy", "kcal", minimum = Some(3900), maximum = Some(4500)),
-    Nutrient("fiber", "g", minimum = Some(35), maximum = Some(180)),
-    Nutrient("iron", "mg", minimum = Some(10), maximum = Some(80)),
-    Nutrient("magnesium","mg", minimum = Some(330), maximum = None),
-    Nutrient("manganese","mg", minimum = Some(2.3), maximum = Some(11), enforce = false),
-    Nutrient("potassium", "mg", minimum = Some(4000), maximum = Some(8000)),
-    Nutrient("phosphorus", "mg", minimum = Some(480), maximum = Some(4000)),
-    Nutrient("protein", "g", minimum = Some(50), maximum = None),
-    Nutrient("retinol", "μg", minimum = None, maximum = Some(3000)),
-    Nutrient("riboflavin", "mg", minimum = Some(1.1), maximum = None),
-    Nutrient("saturatedfat", "g", minimum = Some(20), maximum = Some(55)),
-    Nutrient("selenium", "μg", minimum = Some(45), maximum = Some(400), enforce = false),
-    Nutrient("sodium", "mg", minimum = Some(1500), maximum = Some(5000)),
-    Nutrient("sugar", "g", minimum = Some(12), maximum = Some(80)),
-    Nutrient("totalfat", "g", minimum = Some(65), maximum = Some(130)),
-    Nutrient("vitamina", "IU", minimum = Some(3000), maximum = None),
-    Nutrient("vitaminb6", "mg", minimum = Some(1.1), maximum = Some(100), enforce = false),
-    Nutrient("vitaminb12", "μg", minimum = Some(2.0), maximum = None),
-    Nutrient("vitaminc", "mg", minimum = Some(40), maximum = Some(2000)),
-    Nutrient("vitamind", "IU", minimum = Some(400), maximum = Some(4000), enforce = false),
-    Nutrient("vitamine", "mg", minimum = Some(12), maximum = Some(1000), enforce = false),
-    Nutrient("vitamink", "μg", minimum = Some(120), maximum = None, enforce = false),
-    Nutrient("zinc", "mg", minimum = Some(9.4), maximum = Some(40))
-  )
-
-  val foods = List(
-    getFood("Beef, carcass, separable lean and fat, select, raw", 0.01881, EighthPound),
-    getFood("Butter, without salt", 0.0275, EighthPound),
-    getFood("Corn, white, steamed (Navajo)", 0.00183, BushelCorn),
-    getFood("Wheat flour, whole-grain", 0.0037, SixteenthDryLitre, id = Some("flour")),
-    getFood("Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D", 0.003496, QuarterPound),
-    getFood("Molasses", 0.014501, SixteenthOunce),
-    getFood("Mutton, cooked, roasted (Navajo)", 0.025, EighthPound),
-    getFood("Oats", 0.005, BushelOats),
-    getFood("Peas, split, mature seeds, raw", 0.0041, BushelPeas),
-    getFood("Pork, cured, bacon, raw", 0.02475, EighthPound),
-    getFood("Sweet potato, raw, unprepared", 0.0026, BushelPotatoes, id = Some("sweetpotatoes")),
-    getFood("Potatoes, white, flesh and skin, raw", 0.00352, BushelPotatoes, id = Some("whitepotatoes")),
-    getFood("Rice, white, long-grain, regular, raw, unenriched", 0.00854292, QuarterPound)
-  ).flatMap(food => food match {
-    case Some(food) => Some(food)
-    case None =>
-      logger.error("Couldn't find food")
+  implicit def enrichNodeSeq(nodeSeq: NodeSeq) = new AnyRef {
+    def textOpt : Option[String] = {
+      val text = nodeSeq.text
+      if (text == null || text.length == 0) None else Some(text)
+    }
+  }
+  def strOptToOptDouble(input: String): Option[Double] = {
+    if(input != "None") {
+      Some(input.toDouble)
+    } else {
       None
-  })
+    }
+  }
+  def getModelParams = {
+    (XML.loadFile(s"./data/models/models.xml") \ "model").flatMap { nutrientXml =>
+      for {
+        name <- (nutrientXml \ "@name").textOpt
+        foodSet <- (nutrientXml \ "@foodSet").textOpt
+        nutrientSet <- (nutrientXml \ "@nutrientSet").textOpt
+        proteinDiscount <- (nutrientXml \ "@proteinDiscount").textOpt.map(BigDecimal(_))
+        quantized <- (nutrientXml \ "@quantized").textOpt.map(_.toBoolean)
+      } yield {
+        ModelParams(name, foodSet, nutrientSet, proteinDiscount, quantized)
+      }
+    }.toList
+  }
 
-  val proteinDiscount = 0.000002389
-  val quantized = true
+  def getNutrients(setName: String) = {
+    (XML.loadFile(s"./data/nutrientsets/$setName.xml") \ "nutrient").flatMap { nutrientXml =>
+      for {
+        name <- (nutrientXml \ "@name").textOpt
+        unit <- (nutrientXml \ "@unit").textOpt
+        minimum <- (nutrientXml \ "@minimum").textOpt.map(strOptToOptDouble)
+        maximum <- (nutrientXml \ "@maximum").textOpt.map(strOptToOptDouble)
+      } yield {
+        val enforce = (nutrientXml \ "@enforce").textOpt.map(_.toBoolean).getOrElse(true)
+        Nutrient(name, unit, minimum, maximum, enforce)
+      }
+    }.toList
+  }
 
-  def main (args: Array[String]) {
+  def getFoods(setName: String) = {
+    (XML.loadFile(s"./data/foodsets/$setName.xml") \ "food").flatMap { foodXml =>
+      val name = (foodXml \ "@name").text
+      val price = (foodXml \ "@price").text.toDouble
+      val unit = Unit.byName((foodXml \ "@unit").text)
+      val id = (foodXml \ "@id").textOpt
+      val cookingCoef = (foodXml \ "@cookingCoef").textOpt.map(_.toDouble).getOrElse(1.0)
+      val enabled = (foodXml \ "@enabled").textOpt.map(_.toBoolean).getOrElse(true)
+      getFood(name, price, unit, id, cookingCoef, enabled)
+    }.toList
+  }
 
+  def main(args: Array[String]) {
+    getModelParams.foreach{ modelParams =>
+      new Model(
+        modelParams.name,
+        getFoods(modelParams.foodSet),
+        getNutrients(modelParams.nutrientSet),
+        modelParams.proteinDiscount,
+        modelParams.quantized
+      ).run()
+    }
+  }
+}
+class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinDiscount: BigDecimal, quantized: Boolean) {
+  def logger = LoggerFactory.getLogger(getClass)
+  val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
+
+  def run() = {
     val enabledFoods = foods.filter(_.enabled)
     enabledFoods.foreach { food =>
       mathematica(s"${food.id}std") <~ food.unit.subdivisionsToHundredGrams * AtomExpression(s"${food.id}div")
@@ -96,7 +108,7 @@ object Model {
       (mathematica ! s"Minimize[{adjustedCost,foodConstraints && nutrientConstraints && quantizationConstraints}, " +
         s"{ ${enabledFoods.map(food => s"${food.id}div").mkString(", ")} }]").get.asInstanceOf[ArrayExpression]
 
-    val optimalDietDivs: RuleListExpression = result(1).asInstanceOf[RuleListExpression]
+    val optimalDietDivs: RuleSetExpression = result(1).asInstanceOf[RuleSetExpression]
 
 
     val foodDivRegex = """^([a-zA-Z0-9]+)div$""".r
@@ -117,9 +129,9 @@ object Model {
     val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
       Seq((nutrients.map{n => n.id.a}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
-    val version: String = getVersion
     logger.info("*** Model Parameters ***")
-    logger.info("Version: " + version)
+    logger.info(s"Name: $name")
+    logger.info(s"Version: $getVersion")
     logger.info(s"Quantized: ${if(quantized) "Y" else "N"}")
     logger.info(s"Protein Discount: ${proteinDiscount.formatted("%9.9f")}")
     logger.info("Prices:")
@@ -134,9 +146,9 @@ object Model {
     logger.info(s"Actual Cost: $cost")
     logger.info(s"${"Food".padTo(20, ' ')} ${"Per Day".padTo(16, ' ')} ${"Per Year".padTo(16, ' ')}")
     optimalDiet.toSeq.sortBy(_._1.id).foreach { case (Food(foodId, _, _, unit, cookingCoef, _), amount) =>
-      val perYearAmount = (amount * unit.unitToHundredGrams * Pound.hundredGramsToUnit * 365.25).toFloat
+      val perYearAmount = (amount * unit.unitToHundredGrams * Unit.byName("Pound").hundredGramsToUnit * 365.25).toFloat
       logger.info(s"${foodId.padTo(20, ' ')} ${amount.toFloat.toString.padTo(11, ' ')} ${unit.name.padTo(4, ' ')} " +
-      s"${perYearAmount.toString.padTo(11, ' ')} ${Pound.name.padTo(4, ' ')}")
+      s"${perYearAmount.toString.padTo(11, ' ')} ${Unit.byName("Pound").name.padTo(4, ' ')}")
     }
 
     logger.info("Nutrients:")
@@ -151,9 +163,11 @@ object Model {
         case _ => (" ", "")
       }
       val enforcedInd = if(!nutrient.enforce) "U" else " "
-      logger.info(s"${nutrient.id.padTo(15, ' ')} $enforcedInd ${value.formatted("%10.2f")} $unitInd\t$boundInd $bound")
+      logger.info(s"\t${nutrient.id.padTo(15, ' ')} $enforcedInd\t${value.formatted("%10.2f")} $unitInd\t$boundInd $bound")
     }
+    logger.info("Closing Link")
     mathematica.close()
+    logger.info("Link Closed")
   }
 
 }
