@@ -38,10 +38,11 @@ object Model {
         name <- (nutrientXml \ "@name").textOpt
         foodSet <- (nutrientXml \ "@foodSet").textOpt
         nutrientSet <- (nutrientXml \ "@nutrientSet").textOpt
+        priceSet <- (nutrientXml \ "@priceSet").textOpt
         proteinDiscount <- (nutrientXml \ "@proteinDiscount").textOpt.map(BigDecimal(_))
         quantized <- (nutrientXml \ "@quantized").textOpt.map(_.toBoolean)
       } yield {
-        ModelParams(name, foodSet, nutrientSet, proteinDiscount, quantized)
+        ModelParams(name, foodSet, nutrientSet, priceSet, proteinDiscount, quantized)
       }
     }.toList
   }
@@ -60,15 +61,29 @@ object Model {
     }.toList
   }
 
-  def getFoods(setName: String) = {
+  def getPrices(setName: String) = {
+    (XML.loadFile(s"./data/pricesets/$setName.xml") \ "price").flatMap { nutrientXml =>
+      for {
+        id <- (nutrientXml \ "@id").textOpt
+        price <- (nutrientXml \ "@price").textOpt.map(_.toDouble)
+      } yield {
+        (id, price)
+      }
+    }.toMap
+  }
+
+  def getFoods(setName: String, priceSet: Map[String, Double]): List[Food] = {
     (XML.loadFile(s"./data/foodsets/$setName.xml") \ "food").flatMap { foodXml =>
-      val name = (foodXml \ "@name").text
-      val price = (foodXml \ "@price").text.toDouble
-      val unit = Unit.byName((foodXml \ "@unit").text)
-      val id = (foodXml \ "@id").textOpt
-      val cookingCoef = (foodXml \ "@cookingCoef").textOpt.map(_.toDouble).getOrElse(1.0)
-      val enabled = (foodXml \ "@enabled").textOpt.map(_.toBoolean).getOrElse(true)
-      getFood(name, price, unit, id, cookingCoef, enabled)
+      (for {
+        name <- (foodXml \ "@name").textOpt
+        unit <- (foodXml \ "@unit").textOpt.map(Unit.byName(_))
+      } yield {
+        val id = (foodXml \ "@id").textOpt.getOrElse(name.split(" ")(0).toLowerCase.replace(",", ""))
+        val cookingCoef = (foodXml \ "@cookingCoef").textOpt.map(_.toDouble).getOrElse(1.0)
+        val enabled = (foodXml \ "@enabled").textOpt.map(_.toBoolean).getOrElse(true)
+        val price = priceSet(id)
+        getFood(id, name, price, unit, cookingCoef, enabled).get
+      })
     }.toList
   }
   def using[A <: {def close(): scala.Unit}, B](param: A)(f: A => B): B =
@@ -80,10 +95,10 @@ object Model {
 
   def main(args: Array[String]) {
     getModelParams.foreach{ modelParams =>
-
+      val priceSet = getPrices(modelParams.priceSet)
       val result = new Model(
         modelParams.name,
-        getFoods(modelParams.foodSet),
+        getFoods(modelParams.foodSet, priceSet),
         getNutrients(modelParams.nutrientSet),
         modelParams.proteinDiscount,
         modelParams.quantized

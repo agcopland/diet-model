@@ -4,6 +4,7 @@ case class ModelParams(
   name: String,
   foodSet: String,
   nutrientSet: String,
+  priceSet: String,
   proteinDiscount: BigDecimal,
   quantized: Boolean)
 

@@ -39,10 +39,10 @@ object Database {
     food
   }*/
   def getFood(
+    id: String,
     dbName: String,
     cost: Double,
     unit: Unit = Unit.byName("HundredGram"),
-    id: Option[String] = None,
     cookingCoef: Double = 1.0,
     enabled: Boolean = true): Option[Food] = {
     val food = foods.find(_.name == dbName).map(dbFoodToFood(_, id, cost, unit, cookingCoef, enabled))
@@ -52,12 +52,12 @@ object Database {
 
   protected def dbFoodToFood(
     food: DBFood,
-    id: Option[String] = None,
+    id: String,
     cost: Double, unit: Unit,
     cookingCoef: Double = 1.0,
     enabled: Boolean = true): Food = {
     Food(
-      id = id.getOrElse(food.name.split(" ")(0).toLowerCase.replace(",", "")),
+      id = id,
       cost = cost,
       nutrients = food.nutrients.flatMap {
         case (dbNutrient, amount) if saneNutrientName.isDefinedAt(dbNutrient.shortName) =>
@@ -109,7 +109,7 @@ object Database {
 
 
   protected def readFoodNutrients(): Map[(Int, Int), Double] = {
-    val foodNutrientReader = new CSVReader(new FileReader("./data/foods/NUT_DATA.txt"), '^')
+    val foodNutrientReader = new CSVReader(new FileReader("./data/foods/NUT_DATA.txt"), '^', '~')
     val foodNutrientsById = foodNutrientReader.readAll().map { foodNutrient =>
       val foodIdNum = foodNutrient(0).replace("~", "").toInt
       val nutrientIdNum = foodNutrient(1).replace("~", "").toInt
@@ -122,7 +122,7 @@ object Database {
   }
 
   protected def readFoods(): List[DBFoodId] = {
-    val foodReader = new CSVReader(new FileReader("./data/foods/FOOD_DES.txt"), '^')
+    val foodReader = new CSVReader(new FileReader("./data/foods/FOOD_DES.txt"), '^', '~')
     val foods = foodReader.readAll().map { food =>
       val idNum = food(0).replace("~", "").toInt
       val name = food(2).replace("~", "")
@@ -133,7 +133,7 @@ object Database {
   }
 
   protected def readNutrients(): List[DBNutrient] = {
-    val nutrientReader = new CSVReader(new FileReader("./data/foods/NUTR_DEF.txt"), '^')
+    val nutrientReader = new CSVReader(new FileReader("./data/foods/NUTR_DEF.txt"), '^', '~')
     val nutrients = nutrientReader.readAll().map { nutrient =>
       val idNum = nutrient(0).replace("~", "").toInt
       val unit = nutrient(1).replace("~", "")
