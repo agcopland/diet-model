@@ -1,0 +1,15 @@
+<priceset>
+    <price id="beef"             price="0.01881" />
+    <price id="butter"           price="0.0275" />
+    <price id="corn"             price="0.00183" />
+    <price id="flour"            price="0.0037" />
+    <price id="milk"             price="0.003496" />
+    <price id="molasses"         price="0.014501" />
+    <price id="mutton"           price="0.025" />
+    <price id="oats"             price="0.005" />
+    <price id="peas"             price="0.0041" />
+    <price id="pork"             price="0.02475" />
+    <price id="sweetpotatoes"    price="0.0026" />
+    <price id="whitepotatoes"    price="0.00352" />
+    <price id="rice"             price="0.00854292" />
+</priceset>
