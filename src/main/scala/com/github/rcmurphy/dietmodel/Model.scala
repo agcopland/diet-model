@@ -1,10 +1,9 @@
 package com.github.rcmurphy.dietmodel
 
-import java.io.{FileWriter, File}
-
 import com.github.rcmurphy.dietmodel.Model._
 import com.github.rcmurphy.dietmodel.Database.getFood
 import com.github.rcmurphy.scalamath.mathematica._
+import java.io.FileWriter
 import org.slf4j.LoggerFactory
 import scala.sys.process._
 import scala.util.Try
@@ -74,7 +73,7 @@ object Model {
 
   def getFoods(setName: String, priceSet: Map[String, Double]): List[Food] = {
     (XML.loadFile(s"./data/foodsets/$setName.xml") \ "food").flatMap { foodXml =>
-      (for {
+      for {
         name <- (foodXml \ "@name").textOpt
         unit <- (foodXml \ "@unit").textOpt.map(Unit.byName(_))
       } yield {
@@ -83,7 +82,7 @@ object Model {
         val enabled = (foodXml \ "@enabled").textOpt.map(_.toBoolean).getOrElse(true)
         val price = priceSet(id)
         getFood(id, name, price, unit, cookingCoef, enabled).get
-      })
+      }
     }.toList
   }
   def using[A <: {def close(): scala.Unit}, B](param: A)(f: A => B): B =
@@ -110,24 +109,24 @@ object Model {
 }
 class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinDiscount: BigDecimal, quantized: Boolean) {
   def logger = LoggerFactory.getLogger(getClass)
-  val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
+  implicit val mathematica = new Mathematica("-linkmode launch -linkname '\"/Applications/Mathematica.app/Contents/MacOS/MathKernel\" -mathlink'")
 
   def run(): String = {
     val enabledFoods = foods.filter(_.enabled)
     enabledFoods.foreach { food =>
-      mathematica(s"${food.id}std") <~ food.unit.subdivisionsToHundredGrams * s"${food.id}div".a
+      s"${food.id}std".a <~ food.unit.subdivisionsToHundredGrams * s"${food.id}div".a
     }
-    mathematica("cost") <~ "Plus".f(enabledFoods.map(food => food.cost * s"${food.id}std".a): _*)
-    mathematica("adjustedCost") <~ "cost".a - proteinDiscount * "protein".a
+    "cost".a <~ "Plus".f(enabledFoods.map(food => food.cost * s"${food.id}std".a): _*)
+    "adjustedCost".a <~ "cost".a - proteinDiscount * "protein".a
     nutrients.foreach { case Nutrient(nutrient, _, _, _, _) =>
       mathematica(nutrient) <~ "Plus".f(enabledFoods.map(food => food.nutrients(nutrient) * s"${food.id}std".a): _*)
     }
-    mathematica("foodConstraints") <~ "And".f(enabledFoods.map(food => s"${food.id}div".a >= 0): _*)
+    "foodConstraints".a <~ "And".f(enabledFoods.map(food => s"${food.id}div".a >= 0): _*)
     mathematica("quantizationConstraints") <~ "Element[ " + enabledFoods.map(food => s"${food.id}div").mkString(" | ") +
       s" , ${if(quantized) "Integers" else "Reals"}]"
     mathematica("nutrientConstraints") <~ nutrients.filter(_.enforce).flatMap {
       case Nutrient(nutrient, _, min, max, _) =>
-        min.map( min => s"$nutrient >= ${min}") ++ max.map( max => s"$nutrient <= ${max}")
+        min.map( min => s"$nutrient >= $min") ++ max.map( max => s"$nutrient <= $max")
     }.mkString(" && ")
     val result: ArrayExpression =
       (mathematica ! s"Minimize[{adjustedCost,foodConstraints && nutrientConstraints && quantizationConstraints}, " +
@@ -152,7 +151,7 @@ class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinD
     val protein = (mathematica ! FunctionExpression("ReplaceAll", Seq("protein".a, optimalDietDivs))).get
 
     val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
-      Seq((nutrients.map{n => n.id.a}), optimalDietDivs))).get.asInstanceOf[ArrayExpression]
+      Seq(nutrients.map{n => n.id.a}, optimalDietDivs))).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
     val newLine = sys.props("line.separator")
     val resultBuilder = new StringBuilder()
