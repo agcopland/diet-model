@@ -2,7 +2,9 @@ package com.github.rcmurphy.dietmodel
 
 import com.github.rcmurphy.dietmodel.Model._
 import com.github.rcmurphy.dietmodel.Database.getFood
+import com.github.rcmurphy.scalamath.expression.{IntegerExpression, BigDecimalExpression, RuleSetExpression, ArrayExpression}
 import com.github.rcmurphy.scalamath.mathematica._
+import com.github.rcmurphy.scalamath._
 import java.io.FileWriter
 import org.slf4j.LoggerFactory
 import scala.sys.process._
@@ -119,12 +121,12 @@ class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinD
     "cost".a <~ "Plus".f(enabledFoods.map(food => food.cost * s"${food.id}std".a): _*)
     "adjustedCost".a <~ "cost".a - proteinDiscount * "protein".a
     nutrients.foreach { case Nutrient(nutrient, _, _, _, _) =>
-      mathematica(nutrient) <~ "Plus".f(enabledFoods.map(food => food.nutrients(nutrient) * s"${food.id}std".a): _*)
+      nutrient.a <~ "Plus".f(enabledFoods.map(food => food.nutrients(nutrient) * s"${food.id}std".a): _*)
     }
     "foodConstraints".a <~ "And".f(enabledFoods.map(food => s"${food.id}div".a >= 0): _*)
-    mathematica("quantizationConstraints") <~ "Element[ " + enabledFoods.map(food => s"${food.id}div").mkString(" | ") +
+    "quantizationConstraints".a <~ "Element[ " + enabledFoods.map(food => s"${food.id}div").mkString(" | ") +
       s" , ${if(quantized) "Integers" else "Reals"}]"
-    mathematica("nutrientConstraints") <~ nutrients.filter(_.enforce).flatMap {
+    "nutrientConstraints".a <~ nutrients.filter(_.enforce).flatMap {
       case Nutrient(nutrient, _, min, max, _) =>
         min.map( min => s"$nutrient >= $min") ++ max.map( max => s"$nutrient <= $max")
     }.mkString(" && ")
@@ -146,12 +148,12 @@ class Model(name: String, foods: List[Food], nutrients: List[Nutrient], proteinD
       }
     }.toMap
 
-    val cost = (mathematica ! FunctionExpression("ReplaceAll", Seq("cost".a, optimalDietDivs))).get
+    val cost = (mathematica ! "ReplaceAll".f("cost".a, optimalDietDivs)).get
 
-    val protein = (mathematica ! FunctionExpression("ReplaceAll", Seq("protein".a, optimalDietDivs))).get
+    val protein = (mathematica ! "ReplaceAll".f("protein".a, optimalDietDivs)).get
 
-    val optimalNutrients = (mathematica ! FunctionExpression("ReplaceAll",
-      Seq(nutrients.map{n => n.id.a}, optimalDietDivs))).get.asInstanceOf[ArrayExpression]
+    val optimalNutrients =
+      (mathematica ! "ReplaceAll".f(nutrients.map{n => n.id.a}, optimalDietDivs)).get.asInstanceOf[ArrayExpression]
     val nutrientsWithValues = nutrients zip optimalNutrients.map{ case n: BigDecimalExpression => n.value.toFloat }
     val newLine = sys.props("line.separator")
     val resultBuilder = new StringBuilder()
