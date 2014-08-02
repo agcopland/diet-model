@@ -1,4 +1,14 @@
 <diet name="Fogel 1974">
     <!-- TODO: Make this an actual diet -->
-    <amount id="flour" poundsPerYear="1" />
+    <amount id="beef" poundsPerYear="43" />
+    <amount id="pork" poundsPerYear="88" />
+    <amount id="mutton" poundsPerYear="2" />
+    <amount id="milk" poundsPerYear="171" />
+    <amount id="butter" poundsPerYear="3" />
+    <amount id="sweetpotatoes" poundsPerYear="318" />
+    <amount id="whitepotatoes" poundsPerYear="22" />
+    <amount id="peas" poundsPerYear="101" />
+    <amount id="corn" poundsPerYear="507" />
+    <amount id="flour" poundsPerYear="34" />
+    <amount id="oats" poundsPerYear="14" />
 </diet>
