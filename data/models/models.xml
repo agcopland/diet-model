@@ -31,5 +31,6 @@
     <optimalDietModel name="5.7" foodSet="expanded" nutrientSet="standard" priceSet="national-hybrid" proteinDiscount="0.00001322921" quantized="true" />
     <optimalDietModel name="5.8" foodSet="expanded" nutrientSet="standard" priceSet="national-hybrid" proteinDiscount="0.00008908303" quantized="true" />
 
-    <knownDietModel name="h1.1" foodSet="expanded" nutrientSet="standard" priceSet="national-hybrid" proteinDiscount="0.00008908303" diet="fogel-1974"/>
+    <knownDietModel name="fogel-1974" foodSet="basic11" nutrientSet="standard" priceSet="national-hybrid" proteinDiscount="0.00008908303" diet="fogel-1974"/>
+    <knownDietModel name="sutch" foodSet="expanded" nutrientSet="standard" priceSet="national-hybrid" proteinDiscount="0.00008908303" diet="sutch"/>
 </models>

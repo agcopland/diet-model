@@ -1,0 +1,14 @@
+<diet name="Sutch">
+    <amount id="beef" poundsPerYear="29" />
+    <amount id="pork" poundsPerYear="150" />
+    <amount id="mutton" poundsPerYear="0" />
+    <amount id="milk" poundsPerYear="116" />
+    <amount id="butter" poundsPerYear="3" />
+    <amount id="sweetpotatoes" poundsPerYear="204" />
+    <amount id="whitepotatoes" poundsPerYear="18" />
+    <amount id="peas" poundsPerYear="35" />
+    <amount id="corn" poundsPerYear="636" />
+    <amount id="flour" poundsPerYear="34" />
+    <amount id="oats" poundsPerYear="0" />
+    <amount id="rice" poundsPerYear="3" />
+</diet>
