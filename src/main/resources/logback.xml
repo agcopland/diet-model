@@ -17,5 +17,5 @@
     </root>
 
     <logger name="com.github.rcmurphy.dietmodel" level="INFO"/>
-    <logger name="com.github.rcmurphy.scalamath.mathematica" level="TRACE"/>
+    <logger name="com.github.rcmurphy.scalamath.mathematica" level="DEBUG"/>
 </configuration>

@@ -1,13 +1,26 @@
 package com.github.rcmurphy.dietmodel
 
-case class ModelParams(
+trait ModelParams {
+  def name: String
+  def foodSet: String
+  def nutrientSet: String
+  def priceSet: String
+  def proteinDiscount: BigDecimal
+}
+case class OptimalDietModelParams(
   name: String,
   foodSet: String,
   nutrientSet: String,
   priceSet: String,
   proteinDiscount: BigDecimal,
-  quantized: Boolean)
-
+  quantized: Boolean) extends ModelParams
+case class KnownDietModelParams(
+  name: String,
+  foodSet: String,
+  nutrientSet: String,
+  priceSet: String,
+  diet: String,
+  proteinDiscount: BigDecimal) extends ModelParams
 case class Food(
   id: String,
   cost: Double,
@@ -15,10 +28,15 @@ case class Food(
   unit: Unit,
   cookingCoef: Double = 1.0,
   enabled: Boolean = true)
-/*{
-  def this(id: String, cost: Double, dbId: String) = this(id, cost, )
-}*/
 
+/**
+ *
+ * @param name the name of the diet
+ * @param amounts a map between food ids and amounts consumed per year in pounds
+ */
+case class KnownDiet(
+  name: String,
+  amounts: Map[String, Double])
 case class Nutrient(id: String, unit: String, minimum: Option[Double], maximum: Option[Double], enforce: Boolean = true)
 {
   if(maximum.isDefined && minimum.isDefined)

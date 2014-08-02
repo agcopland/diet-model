@@ -1,0 +1,4 @@
+<diet name="Fogel 1974">
+    <!-- TODO: Make this an actual diet -->
+    <amount id="flour" poundsPerYear="1" />
+</diet>
